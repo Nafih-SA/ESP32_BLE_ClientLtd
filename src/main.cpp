@@ -3,15 +3,7 @@
 #include <BLEUtils.h>
 #include <BLEServer.h>
 #include <BLE2902.h>
-
-BLEDescriptor BatteryLevelDescriptor(BLEUUID((uint16_t)0x2901));
-
-BLEUUID SERVICE_UUID = BLEUUID("4fafc201-1fb5-459e-8fcc-c5c9c331914b");
-#define BatteryService (uint16_t)0x180F
-#define BatteryChara (uint16_t)0x2A19
-
-BLEUUID CHARACTERISTIC_UUID = BLEUUID("beb5483e-36e1-4688-b7f5-ea07361b26a8");
-#define CHARA_UUID2 "4b69b0fe-653f-11eb-ae93-0242ac130002"
+#include "uuid.h"
 
 uint8_t level = 57;
 BLEServer *pServer = NULL;
