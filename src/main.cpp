@@ -8,6 +8,8 @@
 uint8_t level = 57;
 BLEServer *pServer = NULL;
 BLECharacteristic *pCharacteristic = NULL;
+// BLECharacteristic **dpCharacteristic = NULL;
+// BLECharacteristic *pCharacteristic2  = NULL;
 bool deviceConnected = false;
 bool oldDeviceConnected = false;
 uint32_t value = 0;
@@ -26,18 +28,18 @@ class MyServerCallbacks : public BLEServerCallbacks
   }
 };
 
-void addService(BLEService *name, BLEUUID sUUID, BLEUUID cUUID)
+void addService(BLEService *name, BLECharacteristic **ptr, BLEUUID sUUID, BLEUUID cUUID)
 {
   name = pServer->createService(sUUID);
   // Create a BLE Characteristic
-  pCharacteristic = name->createCharacteristic(
+  *ptr = name->createCharacteristic(
       cUUID, BLECharacteristic::PROPERTY_READ |
           BLECharacteristic::PROPERTY_WRITE |
           BLECharacteristic::PROPERTY_NOTIFY |
           BLECharacteristic::PROPERTY_INDICATE);
 
   // Create a BLE Descriptor
-  pCharacteristic->addDescriptor(new BLE2902());
+  (*ptr)->addDescriptor(new BLE2902());
 
   // Start the service
   name->start();
@@ -54,24 +56,12 @@ void setup()
 
   /********** Service 1 **************/
   BLEService *s1;
-  addService(s1, SERVICE_UUID, CHARACTERISTIC_UUID);
-  // BLEService *pService1 = pServer->createService(SERVICE_UUID);
-
-  // // Create a BLE Characteristic
-  // pCharacteristic = pService1->createCharacteristic(
-  //     CHARACTERISTIC_UUID,
-  //     BLECharacteristic::PROPERTY_READ |
-  //         BLECharacteristic::PROPERTY_WRITE |
-  //         BLECharacteristic::PROPERTY_NOTIFY |
-  //         BLECharacteristic::PROPERTY_INDICATE);
-
-  // // Create a BLE Descriptor
-  // pCharacteristic->addDescriptor(new BLE2902());
-
-  // // Start the service
-  // pService1->start();
+  // dpCharacteristic = &pCharacteristic;
+  addService(s1, &pCharacteristic, SERVICE_UUID, CHARACTERISTIC_UUID);
 
   /********** Battery Service **************/
+  // BLEService *s2;
+  // addService(s2, pCharacteristic2, BatteryService, BatteryCharacteristics);
   // BLEService *pService2 = pServer->createService(BatteryService); //Declared Globally
   // BLECharacteristic *pCharacteristicBatt = pService2->createCharacteristic(BatteryChara, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY);
   // pCharacteristicBatt->setValue("Percentage 0 - 100");
