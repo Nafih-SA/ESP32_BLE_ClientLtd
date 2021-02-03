@@ -6,11 +6,11 @@
 
 BLEDescriptor BatteryLevelDescriptor(BLEUUID((uint16_t)0x2901));
 
-#define SERVICE_UUID "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
+BLEUUID SERVICE_UUID = BLEUUID("4fafc201-1fb5-459e-8fcc-c5c9c331914b");
 #define BatteryService (uint16_t)0x180F
 #define BatteryChara (uint16_t)0x2A19
 
-#define CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
+BLEUUID CHARACTERISTIC_UUID = BLEUUID("beb5483e-36e1-4688-b7f5-ea07361b26a8");
 #define CHARA_UUID2 "4b69b0fe-653f-11eb-ae93-0242ac130002"
 
 uint8_t level = 57;
@@ -34,7 +34,22 @@ class MyServerCallbacks : public BLEServerCallbacks
   }
 };
 
+void addService(BLEService *name, BLEUUID sUUID, BLEUUID cUUID)
+{
+  name = pServer->createService(sUUID);
+  // Create a BLE Characteristic
+  pCharacteristic = name->createCharacteristic(
+      cUUID, BLECharacteristic::PROPERTY_READ |
+          BLECharacteristic::PROPERTY_WRITE |
+          BLECharacteristic::PROPERTY_NOTIFY |
+          BLECharacteristic::PROPERTY_INDICATE);
 
+  // Create a BLE Descriptor
+  pCharacteristic->addDescriptor(new BLE2902());
+
+  // Start the service
+  name->start();
+}
 
 void setup()
 {
@@ -46,21 +61,23 @@ void setup()
   pServer->setCallbacks(new MyServerCallbacks());
 
   /********** Service 1 **************/
-  BLEService *pService1 = pServer->createService(SERVICE_UUID);
+  BLEService *s1;
+  addService(s1, SERVICE_UUID, CHARACTERISTIC_UUID);
+  // BLEService *pService1 = pServer->createService(SERVICE_UUID);
 
-  // Create a BLE Characteristic
-  pCharacteristic = pService1->createCharacteristic(
-      CHARACTERISTIC_UUID,
-      BLECharacteristic::PROPERTY_READ |
-          BLECharacteristic::PROPERTY_WRITE |
-          BLECharacteristic::PROPERTY_NOTIFY |
-          BLECharacteristic::PROPERTY_INDICATE);
+  // // Create a BLE Characteristic
+  // pCharacteristic = pService1->createCharacteristic(
+  //     CHARACTERISTIC_UUID,
+  //     BLECharacteristic::PROPERTY_READ |
+  //         BLECharacteristic::PROPERTY_WRITE |
+  //         BLECharacteristic::PROPERTY_NOTIFY |
+  //         BLECharacteristic::PROPERTY_INDICATE);
 
-  // Create a BLE Descriptor
-  pCharacteristic->addDescriptor(new BLE2902());
+  // // Create a BLE Descriptor
+  // pCharacteristic->addDescriptor(new BLE2902());
 
-  // Start the service
-  pService1->start();
+  // // Start the service
+  // pService1->start();
 
   /********** Battery Service **************/
   // BLEService *pService2 = pServer->createService(BatteryService); //Declared Globally
@@ -84,10 +101,10 @@ void loop()
 
   if (deviceConnected)
   {
-    pCharacteristic->setValue((uint8_t*)&value, 4);
-        pCharacteristic->notify();
-        value++;
-        delay(100); // bluetooth stack will go into congestion, if too many packets are sent, in 6 hours test i was able to go as low as 3ms
+    pCharacteristic->setValue((uint8_t *)&value, 4);
+    pCharacteristic->notify();
+    value++;
+    delay(100); // bluetooth stack will go into congestion, if too many packets are sent, in 6 hours test i was able to go as low as 3ms
   }
   // disconnecting
   if (!deviceConnected && oldDeviceConnected)
