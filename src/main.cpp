@@ -3,16 +3,31 @@
 #include <BLEUtils.h>
 #include <BLEServer.h>
 #include <BLE2902.h>
+#include "BLEBeacon.h"
 #include "uuid.h"
 
-uint8_t level = 57;
 BLEServer *pServer = NULL;
 BLECharacteristic *pCharacteristic = NULL;
-// BLECharacteristic **dpCharacteristic = NULL;
-// BLECharacteristic *pCharacteristic2  = NULL;
+BLECharacteristic *pCharacteristic2 = NULL;
+BLECharacteristic *pCharacteristic3 = NULL;
 bool deviceConnected = false;
 bool oldDeviceConnected = false;
 uint32_t value = 0;
+
+class MyCallbacks: public BLECharacteristicCallbacks {
+    void onWrite(BLECharacteristic *pCharacteristic) {
+      std::string value = pCharacteristic->getValue();
+
+      if (value.length() > 0) {
+        Serial.println("*********");
+          Serial.print(value.c_str());
+
+        Serial.println();
+        Serial.println("*********");
+      }
+    }
+};
+
 
 class MyServerCallbacks : public BLEServerCallbacks
 {
@@ -26,23 +41,49 @@ class MyServerCallbacks : public BLEServerCallbacks
   {
     deviceConnected = false;
   }
+
+  void onWrite(BLECharacteristic *pCharacteristic)
+  {
+    std::string value = pCharacteristic->getValue();
+
+    if (value.length() > 0)
+    {
+      Serial.println("*********");
+      Serial.print(value.c_str());
+
+      Serial.println();
+      Serial.println("*********");
+    }
+  }
 };
 
-void addService(BLEService *name, BLECharacteristic **ptr, BLEUUID sUUID, BLEUUID cUUID)
+void addService(BLEService **name, BLECharacteristic **ptr, BLEUUID sUUID, BLEUUID cUUID)
 {
-  name = pServer->createService(sUUID);
+  *name = pServer->createService(sUUID);
   // Create a BLE Characteristic
-  *ptr = name->createCharacteristic(
+  *ptr = (*name)->createCharacteristic(
       cUUID, BLECharacteristic::PROPERTY_READ |
-          BLECharacteristic::PROPERTY_WRITE |
-          BLECharacteristic::PROPERTY_NOTIFY |
-          BLECharacteristic::PROPERTY_INDICATE);
+                 BLECharacteristic::PROPERTY_WRITE |
+                 BLECharacteristic::PROPERTY_NOTIFY |
+                 BLECharacteristic::PROPERTY_INDICATE);
 
   // Create a BLE Descriptor
   (*ptr)->addDescriptor(new BLE2902());
 
   // Start the service
-  name->start();
+  (*name)->start();
+}
+
+void addCharacteristic(BLEService **Cname, BLECharacteristic **Cptr, BLEUUID cUUID)
+{
+  *Cptr = (*Cname)->createCharacteristic(
+      cUUID, BLECharacteristic::PROPERTY_READ |
+                 BLECharacteristic::PROPERTY_WRITE |
+                 BLECharacteristic::PROPERTY_NOTIFY |
+                 BLECharacteristic::PROPERTY_INDICATE);
+  // Create a BLE Descriptor
+  (*Cptr)->addDescriptor(new BLE2902());
+  (*Cname)->start();
 }
 
 void setup()
@@ -56,25 +97,31 @@ void setup()
 
   /********** Service 1 **************/
   BLEService *s1;
-  // dpCharacteristic = &pCharacteristic;
-  addService(s1, &pCharacteristic, SERVICE_UUID, CHARACTERISTIC_UUID);
+  addService(&s1, &pCharacteristic, SERVICE10_UUID, CHARACTERISTIC11_UUID);
+  addCharacteristic(&s1, &pCharacteristic2, CHARACTERISTIC12_UUID);
+  pCharacteristic2->setCallbacks(new MyCallbacks());
+  
 
   /********** Battery Service **************/
-  // BLEService *s2;
-  // addService(s2, pCharacteristic2, BatteryService, BatteryCharacteristics);
-  // BLEService *pService2 = pServer->createService(BatteryService); //Declared Globally
-  // BLECharacteristic *pCharacteristicBatt = pService2->createCharacteristic(BatteryChara, BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY);
-  // pCharacteristicBatt->setValue("Percentage 0 - 100");
-  // pCharacteristicBatt->addDescriptor(&BatteryLevelDescriptor);
-  // pCharacteristicBatt->addDescriptor(new BLE2902());
-  // pService2->start();
+  BLEService *s2;
+  addService(&s2, &pCharacteristic3, SERVICE20_UUID, CHARACTERISTIC21_UUID);
 
   // Start advertising
+  BLEAdvertisementData pAdvertisementData = BLEAdvertisementData();
+  BLEAdvertisementData qAdvertisementData = BLEAdvertisementData();
+
   BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
-  pAdvertising->addServiceUUID(SERVICE_UUID);
-  pAdvertising->setScanResponse(false);
-  pAdvertising->setMinPreferred(0x0); // set value to 0x00 to not advertise this parameter
+  // pAdvertising->addServiceUUID(SERVICE_UUID);
+  pAdvertising->setAppearance(192);
+  pAdvertising->setScanResponse(true);
+  pAdvertising->setMinPreferred(0x0);  // set value to 0x00 to not advertise this parameter
+  pAdvertisementData.setName("B_ESP"); // Value already set in init()
+  // pAdvertisementData.setShortName("B-ESP");
+  pAdvertisementData.setManufacturerData("004C");
+  pAdvertisementData.setCompleteServices(SERVICE_UUID);
+  pAdvertising->setAdvertisementData(pAdvertisementData);
   BLEDevice::startAdvertising();
+
   Serial.println("Characteristic defined! Now you can read it in your phone!");
 }
 
@@ -83,8 +130,12 @@ void loop()
 
   if (deviceConnected)
   {
+    pCharacteristic2->setValue((uint8_t *)&value, 4);
+    pCharacteristic2->notify();
     pCharacteristic->setValue((uint8_t *)&value, 4);
     pCharacteristic->notify();
+    pCharacteristic3->setValue((uint8_t *)&value, 4);
+    pCharacteristic3->notify();
     value++;
     delay(100); // bluetooth stack will go into congestion, if too many packets are sent, in 6 hours test i was able to go as low as 3ms
   }
@@ -103,5 +154,5 @@ void loop()
     oldDeviceConnected = deviceConnected;
   }
 
-  delay(1000);
+  delay(500);
 }
