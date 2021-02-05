@@ -15,7 +15,7 @@ bool oldDeviceConnected = false;
 uint32_t value = 0;
 
 
-/********** Multiclient ***********/
+/*********** To Send Data *********/
 class MyCallbacks: public BLECharacteristicCallbacks {
     void onWrite(BLECharacteristic *pCharacteristic) {
       std::string value = pCharacteristic->getValue();
@@ -30,7 +30,7 @@ class MyCallbacks: public BLECharacteristicCallbacks {
     }
 };
 
-/*********** To Send Data *********/
+/********** Multiclient ***********/
 class MyServerCallbacks : public BLEServerCallbacks
 {
   void onConnect(BLEServer *pServer)
