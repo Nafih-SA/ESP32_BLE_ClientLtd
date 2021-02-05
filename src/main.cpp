@@ -14,6 +14,8 @@ bool deviceConnected = false;
 bool oldDeviceConnected = false;
 uint32_t value = 0;
 
+
+/********** Multiclient ***********/
 class MyCallbacks: public BLECharacteristicCallbacks {
     void onWrite(BLECharacteristic *pCharacteristic) {
       std::string value = pCharacteristic->getValue();
@@ -28,7 +30,7 @@ class MyCallbacks: public BLECharacteristicCallbacks {
     }
 };
 
-
+/*********** To Send Data *********/
 class MyServerCallbacks : public BLEServerCallbacks
 {
   void onConnect(BLEServer *pServer)
@@ -97,12 +99,12 @@ void setup()
 
   /********** Service 1 **************/
   BLEService *s1;
-  addService(&s1, &pCharacteristic, SERVICE10_UUID, CHARACTERISTIC11_UUID);
-  addCharacteristic(&s1, &pCharacteristic2, CHARACTERISTIC12_UUID);
-  pCharacteristic2->setCallbacks(new MyCallbacks());
-  
+  addService(&s1, &pCharacteristic, SERVICE10_UUID, CHARACTERISTIC11_UUID);//Create Service
+  addCharacteristic(&s1, &pCharacteristic2, CHARACTERISTIC12_UUID);//Add a second characteristic
+  pCharacteristic2->setCallbacks(new MyCallbacks());//Add upload (write) option
 
-  /********** Battery Service **************/
+
+  /********** Service 2 **************/
   BLEService *s2;
   addService(&s2, &pCharacteristic3, SERVICE20_UUID, CHARACTERISTIC21_UUID);
 
