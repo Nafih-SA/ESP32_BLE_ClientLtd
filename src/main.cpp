@@ -3,9 +3,11 @@
 #include <BLEUtils.h>
 #include <BLEServer.h>
 #include <BLE2902.h>
+#include "BLESecurity.h"
 #include "BLEBeacon.h"
 #include "uuid.h"
 
+BLESecurity *pSecurity = new BLESecurity();
 BLEServer *pServer = NULL;
 BLECharacteristic *pCharacteristic = NULL;
 BLECharacteristic *pCharacteristic2 = NULL;
@@ -14,20 +16,22 @@ bool deviceConnected = false;
 bool oldDeviceConnected = false;
 uint32_t value = 0;
 
-
 /*********** To Send Data *********/
-class MyCallbacks: public BLECharacteristicCallbacks {
-    void onWrite(BLECharacteristic *pCharacteristic) {
-      std::string value = pCharacteristic->getValue();
+class MyCallbacks : public BLECharacteristicCallbacks
+{
+  void onWrite(BLECharacteristic *pCharacteristic)
+  {
+    std::string value = pCharacteristic->getValue();
 
-      if (value.length() > 0) {
-        Serial.println("*********");
-          Serial.print(value.c_str());
+    if (value.length() > 0)
+    {
+      Serial.println("*********");
+      Serial.print(value.c_str());
 
-        Serial.println();
-        Serial.println("*********");
-      }
+      Serial.println();
+      Serial.println("*********");
     }
+  }
 };
 
 /********** Multiclient ***********/
@@ -99,10 +103,9 @@ void setup()
 
   /********** Service 1 **************/
   BLEService *s1;
-  addService(&s1, &pCharacteristic, SERVICE10_UUID, CHARACTERISTIC11_UUID);//Create Service
-  addCharacteristic(&s1, &pCharacteristic2, CHARACTERISTIC12_UUID);//Add a second characteristic
-  pCharacteristic2->setCallbacks(new MyCallbacks());//Add upload (write) option
-
+  addService(&s1, &pCharacteristic, SERVICE10_UUID, CHARACTERISTIC11_UUID); //Create Service
+  addCharacteristic(&s1, &pCharacteristic2, CHARACTERISTIC12_UUID);         //Add a second characteristic
+  pCharacteristic2->setCallbacks(new MyCallbacks());                        //Add upload (write) option
 
   /********** Service 2 **************/
   BLEService *s2;
@@ -123,6 +126,8 @@ void setup()
   pAdvertisementData.setCompleteServices(SERVICE_UUID);
   pAdvertising->setAdvertisementData(pAdvertisementData);
   BLEDevice::startAdvertising();
+
+  pSecurity->setStaticPIN(123456);
 
   Serial.println("Characteristic defined! Now you can read it in your phone!");
 }
