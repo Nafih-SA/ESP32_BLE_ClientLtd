@@ -3,8 +3,6 @@
 #include <BLEUtils.h>
 #include <BLEServer.h>
 #include <BLE2902.h>
-#include "BLESecurity.h"
-#include "BLEBeacon.h"
 #include "uuid.h"
 
 BLESecurity *pSecurity = new BLESecurity();
