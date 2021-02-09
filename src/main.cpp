@@ -13,6 +13,7 @@ BLECharacteristic *pCharacteristic3 = NULL;
 bool deviceConnected = false;
 bool oldDeviceConnected = false;
 uint32_t value = 0;
+int connID = 0;
 
 /*********** To Send Data *********/
 class MyCallbacks : public BLECharacteristicCallbacks
@@ -37,6 +38,19 @@ class MyServerCallbacks : public BLEServerCallbacks
 {
   void onConnect(BLEServer *pServer)
   {
+    if(pServer->getConnId() && !connID)
+    {
+      pServer->disconnect(connID);
+      connID++;
+      Serial.println("Kicked 0 out");    
+    }
+    else if(!(pServer->getConnId()) && connID)
+    {
+      pServer->disconnect(connID);
+      connID--;  
+      Serial.println("Kicked 1 out");  
+    }
+    Serial.printf("\nThe Connection ID is %d\n",connID);
     deviceConnected = true;
     BLEDevice::startAdvertising();
   };
@@ -143,7 +157,9 @@ void loop()
   if (deviceConnected && !oldDeviceConnected)
   {
     // do stuff here on connecting
+    // pServer->disconnect(oldDeviceConnected);
     oldDeviceConnected = deviceConnected;
+
   }
 
   delay(500);
