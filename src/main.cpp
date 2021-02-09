@@ -49,6 +49,7 @@ class MyServerCallbacks : public BLEServerCallbacks
   }
 };
 
+/********** Custom Functions **********/
 void addService(BLEService **name, BLECharacteristic **ptr, BLEUUID sUUID, BLEUUID cUUID)
 {
   *name = pServer->createService(sUUID);
