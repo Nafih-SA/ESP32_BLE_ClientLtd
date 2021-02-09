@@ -47,20 +47,6 @@ class MyServerCallbacks : public BLEServerCallbacks
   {
     deviceConnected = false;
   }
-
-  void onWrite(BLECharacteristic *pCharacteristic)
-  {
-    std::string value = pCharacteristic->getValue();
-
-    if (value.length() > 0)
-    {
-      Serial.println("*********");
-      Serial.print(value.c_str());
-
-      Serial.println();
-      Serial.println("*********");
-    }
-  }
 };
 
 void addService(BLEService **name, BLECharacteristic **ptr, BLEUUID sUUID, BLEUUID cUUID)
@@ -92,6 +78,7 @@ void addCharacteristic(BLEService **Cname, BLECharacteristic **Cptr, BLEUUID cUU
   (*Cname)->start();
 }
 
+/************** Set-up ************/
 void setup()
 {
   Serial.begin(115200);
@@ -127,11 +114,10 @@ void setup()
   pAdvertising->setAdvertisementData(pAdvertisementData);
   BLEDevice::startAdvertising();
 
-  pSecurity->setStaticPIN(123456);
-
   Serial.println("Characteristic defined! Now you can read it in your phone!");
 }
 
+/************* Loop *************/
 void loop()
 {
 
